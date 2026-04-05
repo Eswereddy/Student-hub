@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{uid}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - role: string (required, enum: student, faculty, parent, admin, ai_admin)
+    //   - photoURL: string (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: /students/{uid}
+    // Fields:
+    //   - uid: string (required)
+    //   - rollNumber: string (required)
+    //   - semester: number
+    //   - year: number
+    //   - cgpa: number
+    //   - attendance: number
+    //   - skills: list
+    //   - certifications: list
+    //   - internships: list
+    //   - parentUid: string
+    //   - facultyMentorUid: string
+    //
+    // Collection: /marks/{markId}
+    // Fields:
+    //   - studentUid: string (required)
+    //   - subject: string (required)
+    //   - score: number (required)
+    //   - maxScore: number (required)
+    //   - semester: number
+    //
+    // Collection: /ai_insights/{studentUid}
+    // Fields:
+    //   - studentUid: string (required)
+    //   - roadmap: string
+    //   - suggestions: list
+    //   - performanceAnalysis: string
+    //   - updatedAt: timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ai_admin' ||
+         (request.auth.token.email == "jakkireddyeswarreddy@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isFaculty() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'faculty';
+    }
+
+    function isParentOf(studentUid) {
+      return isAuthenticated() && get(/databases/$(database)/documents/students/$(studentUid)).data.parentUid == request.auth.uid;
+    }
+
+    function isMentorOf(studentUid) {
+      return isAuthenticated() && get(/databases/$(database)/documents/students/$(studentUid)).data.facultyMentorUid == request.auth.uid;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      function isValidUser(data) {
+        return data.uid is string && data.uid.size() > 0 &&
+               data.email is string && isValidEmail(data.email) &&
+               data.role in ['student', 'faculty', 'parent', 'admin', 'ai_admin'];
+      }
+
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(uid) && isValidUser(request.resource.data) && (request.resource.data.role != 'admin' && request.resource.data.role != 'ai_admin' || isAdmin());
+      allow update: if isAuthenticated() && (isOwner(uid) || isAdmin()) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /students/{uid} {
+      function isValidStudent(data) {
+        return data.uid is string && data.rollNumber is string && data.rollNumber.size() > 0;
+      }
+
+      allow read: if isAuthenticated() && (isOwner(uid) || isFaculty() || isParentOf(uid) || isAdmin());
+      allow create: if isAuthenticated() && (isOwner(uid) || isFaculty() || isAdmin()) && isValidStudent(request.resource.data);
+      allow update: if isAuthenticated() && (isOwner(uid) || isFaculty() || isAdmin()) && isValidStudent(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /marks/{markId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentUid) || isFaculty() || isParentOf(resource.data.studentUid) || isAdmin());
+      allow create: if isAuthenticated() && (isFaculty() || isAdmin());
+      allow update: if isAuthenticated() && (isFaculty() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentUid) || isFaculty() || isParentOf(resource.data.studentUid) || isAdmin());
+      allow write: if isAuthenticated() && (isFaculty() || isAdmin());
+    }
+
+    match /certifications/{certId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(request.resource.data.studentUid);
+      allow update: if isAuthenticated() && (isOwner(resource.data.studentUid) || isAdmin());
+      allow delete: if isAuthenticated() && (isOwner(resource.data.studentUid) || isAdmin());
+    }
+
+    match /projects/{projectId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(request.resource.data.studentUid);
+      allow update: if isAuthenticated() && (isOwner(resource.data.studentUid) || isAdmin());
+      allow delete: if isAuthenticated() && (isOwner(resource.data.studentUid) || isAdmin());
+    }
+
+    match /fees/{feeId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.studentUid) || isParentOf(resource.data.studentUid) || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /ai_insights/{studentUid} {
+      allow read: if isAuthenticated() && (isOwner(studentUid) || isFaculty() || isParentOf(studentUid) || isAdmin());
+      allow write: if isAuthenticated() && (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ai_admin');
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

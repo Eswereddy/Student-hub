@@ -1,0 +1,8 @@
+{
+  "name": "EduSphere AI: Multi-Portal Academic Ecosystem",
+  "description": "A comprehensive educational management system featuring specialized portals for Students, Faculty, Parents, Admins, and AI-driven insights for personalized growth.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}

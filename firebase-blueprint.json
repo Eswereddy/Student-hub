@@ -1,0 +1,128 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Base user profile for all portal types.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "faculty", "parent", "admin", "ai_admin"] },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "contact": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Student": {
+      "title": "Student Details",
+      "description": "Academic and personal data for students.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "rollNumber": { "type": "string" },
+        "semester": { "type": "integer" },
+        "year": { "type": "integer" },
+        "cgpa": { "type": "number" },
+        "attendance": { "type": "number" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "parentUid": { "type": "string" },
+        "facultyMentorUid": { "type": "string" }
+      },
+      "required": ["uid", "rollNumber"]
+    },
+    "Mark": {
+      "title": "Academic Marks",
+      "description": "Subject-wise marks for students.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "subject": { "type": "string" },
+        "score": { "type": "number" },
+        "maxScore": { "type": "number" },
+        "semester": { "type": "integer" },
+        "grade": { "type": "string" }
+      },
+      "required": ["studentUid", "subject", "score"]
+    },
+    "Attendance": {
+      "title": "Attendance Record",
+      "description": "Daily attendance logs.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["present", "absent", "late"] }
+      },
+      "required": ["studentUid", "date", "status"]
+    },
+    "Certification": {
+      "title": "Student Certification",
+      "description": "Certifications earned by students.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "title": { "type": "string" },
+        "issuer": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "url": { "type": "string" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["studentUid", "title"]
+    },
+    "Project": {
+      "title": "Student Project",
+      "description": "Projects or internships completed by students.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "role": { "type": "string" },
+        "type": { "type": "string", "enum": ["project", "internship"] },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" }
+      },
+      "required": ["studentUid", "title"]
+    },
+    "Fee": {
+      "title": "Fee Record",
+      "description": "Fee payment details for parents.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "pending", "partial"] },
+        "dueDate": { "type": "string" },
+        "paidDate": { "type": "string" }
+      },
+      "required": ["studentUid", "amount", "status"]
+    },
+    "AIInsight": {
+      "title": "AI Recommendations",
+      "description": "Personalized AI-generated insights and roadmaps.",
+      "type": "object",
+      "properties": {
+        "studentUid": { "type": "string" },
+        "roadmap": { "type": "string" },
+        "suggestions": { "type": "array", "items": { "type": "string" } },
+        "performanceAnalysis": { "type": "string" },
+        "behavioralInsights": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentUid"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "Global user profiles." },
+    "/students/{uid}": { "schema": "Student", "description": "Detailed student academic records." },
+    "/marks/{markId}": { "schema": "Mark", "description": "Student marks across semesters." },
+    "/attendance/{attendanceId}": { "schema": "Attendance", "description": "Daily attendance records." },
+    "/certifications/{certId}": { "schema": "Certification", "description": "Student certifications." },
+    "/projects/{projectId}": { "schema": "Project", "description": "Student projects and internships." },
+    "/fees/{feeId}": { "schema": "Fee", "description": "Student fee records." },
+    "/ai_insights/{studentUid}": { "schema": "AIInsight", "description": "AI-generated growth plans." }
+  }
+}
