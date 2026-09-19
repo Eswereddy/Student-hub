@@ -1,20 +1,53 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Student Hub — Multi-Portal College Management Platform
 
-# Run and deploy your AI Studio app
+A full-stack college management system with five role-based portals: Student, Faculty, Parent, Admin, and AI-Admin. Built to handle real academic workflows — attendance, grades, fees, exams, HR/payroll, hostel/mess, placements, and transport — behind a single authenticated platform.
 
-This contains everything you need to run your app locally.
+## Portals & Features
 
-View your app in AI Studio: https://ai.studio/apps/6eff2aa5-4ddf-49b5-9dc0-1bff253b750e
+- **Student Portal** — attendance, grades, fees, assignments, hall ticket PDF generation, AI Interview & DSA Coach
+- **Faculty Portal** — grading, attendance management, exam cell tools
+- **Parent Portal** — live bus GPS simulation, demo payment gateway, wellness alerts, multi-child switching
+- **Admin Portal** — HR/payroll (with Indian TDS slab tax calculation), hostel/mess management, placements & alumni mock interviews, transport module
+- **AI-Admin** — AI-assisted administration backed by a retrieval-augmented assistant
 
-## Run Locally
+## Authentication
 
-**Prerequisites:**  Node.js
+- JWT-based session auth
+- OAuth2 login via Google, LinkedIn, and GitHub
+- Passwords hashed with bcrypt; tokens signed via HMAC
 
+## AI Layer
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- TF-IDF + cosine similarity retrieval for a lightweight RAG-based AI assistant with contextual memory
+- AI routing: Gemini as primary provider, with automatic fallback
+- Rule-based risk scoring and percentile ranking for academic analytics
+
+## Algorithms Used
+
+- TF-IDF & cosine similarity (AI retrieval)
+- Feature hashing
+- bcrypt password hashing
+- JWT / HMAC token signing
+- Rule-based risk scoring
+- Percentile ranking
+- Slab-based tax calculation (Indian TDS logic)
+- SHA-256 hash anchoring
+
+## Tech Stack
+
+- **Backend:** Node.js, Express, SQLite
+- **Frontend:** Single-page application (vanilla/large single-file frontend)
+- **Auth:** JWT, OAuth2 (Google, LinkedIn, GitHub)
+- **AI:** Gemini API (primary), with fallback routing
+- **Deployment:** Render
+
+## Setup
+
+\`\`\`bash
+git clone https://github.com/Eswereddy/student-hub.git
+cd student-hub
+npm install
+npm start
+\`\`\`
+
+Set the following environment variables
